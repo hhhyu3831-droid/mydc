@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Downloading...</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Prompt', 'Inter', sans-serif;
+      background-color: #06080f;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* แสง Ambient ด้านหลังขยับนุ่มๆ */
+    .ambient-glow {
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(88, 101, 242, 0.22) 0%, rgba(16, 185, 129, 0.05) 50%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(50px);
+      z-index: 0;
+      animation: floatGlow 8s ease-in-out infinite alternate;
+      transition: background 1s ease;
+    }
+
+    body.completed .ambient-glow {
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.24) 0%, rgba(88, 101, 242, 0.08) 50%, transparent 70%);
+    }
+
+    @keyframes floatGlow {
+      0% { transform: translate(-25px, -20px) scale(0.95); }
+      100% { transform: translate(25px, 20px) scale(1.08); }
+    }
+
+    /* การ์ดหลักแบบ Glassmorphism */
+    .card {
+      position: relative;
+      z-index: 1;
+      width: 90%;
+      max-width: 400px;
+      padding: 40px 32px;
+      background: rgba(17, 21, 34, 0.65);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.75),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+      text-align: center;
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.6s ease;
+    }
+
+    body.completed .card {
+      border-color: rgba(16, 185, 129, 0.28);
+    }
+
+    /* วงแหวนไอคอนด้านบน */
+    .icon-ring {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 24px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(88, 101, 242, 0.18), rgba(88, 101, 242, 0.04));
+      border: 1px solid rgba(88, 101, 242, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 10px 25px -5px rgba(88, 101, 242, 0.25);
+    }
+
+    body.completed .icon-ring {
+      background: linear-gradient(145deg, rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.05));
+      border-color: rgba(16, 185, 129, 0.4);
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+      transform: scale(1.05);
+    }
+
+    .icon-svg {
+      width: 30px;
+      height: 30px;
+      color: #7984f8;
+      transition: all 0.5s ease;
+    }
+
+    .icon-download {
+      animation: bounceArrow 1.6s infinite ease-in-out;
+    }
+
+    @keyframes bounceArrow {
+      0%, 100% { transform: translateY(-2px); }
+      50% { transform: translateY(3px); }
+    }
+
+    .icon-check {
+      display: none;
+      color: #10b981;
+      stroke-dasharray: 30;
+      stroke-dashoffset: 30;
+      animation: drawCheck 0.5s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+
+    body.completed .icon-download {
+      display: none;
+    }
+
+    body.completed .icon-check {
+      display: block;
+    }
+
+    /* ข้อความสถานะ */
+    .title {
+      font-size: 21px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      margin-bottom: 6px;
+      color: #f8fafc;
+      transition: color 0.4s ease;
+    }
+
+    .subtitle {
+      font-size: 13.5px;
+      font-weight: 300;
+      color: #94a3b8;
+      margin-bottom: 28px;
+      min-height: 20px;
+      transition: opacity 0.25s ease;
+    }
+
+    /* แถบดาวน์โหลดสมูทๆ */
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      font-family: 'Inter', 'Prompt', sans-serif;
+    }
+
+    .percent-value {
+      font-weight: 600;
+      color: #e2e8f0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #5865F2, #8b95ff);
+      box-shadow: 0 0 14px rgba(88, 101, 242, 0.65);
+      position: relative;
+      transition: background 0.6s ease, box-shadow 0.6s ease;
+    }
+
+    /* แสงวิ่งผ่านหลอดโหลด */
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+      );
+      animation: shimmer 1.4s infinite linear;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    body.completed .progress-fill {
+      background: linear-gradient(90deg, #10b981, #34d399);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.6);
+    }
+
+    body.completed .progress-fill::after {
+      display: none;
+    }
+
+    /* ส่วนปุ่ม MY DC (กางออกอย่างสมูทเมื่อโหลดเสร็จ) */
+    .action-area {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transform: translateY(12px);
+      transition: 
+        max-height 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.5s ease 0.15s,
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s,
+        margin-top 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      margin-top: 0;
+    }
+
+    body.completed .action-area {
+      max-height: 90px;
+      opacity: 1;
+      transform: translateY(0);
+      margin-top: 28px;
+    }
+
+    .dc-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+      color: #ffffff;
+      text-decoration: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 25px -5px rgba(88, 101, 242, 0.5);
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .dc-btn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #6571f5 0%, #525ed1 100%);
+      box-shadow: 0 14px 30px -4px rgba(88, 101, 242, 0.68);
+    }
+
+    .dc-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .dc-icon {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+
+  <div class="card">
+    <div class="icon-ring">
+      <!-- ไอคอนลูกศรดาวน์โหลด -->
+      <svg class="icon-svg icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v13"></path>
+        <path d="m7 11 5 5 5-5"></path>
+        <path d="M5 20h14"></path>
+      </svg>
+      <!-- ไอคอนติ๊กถูกตอนเสร็จ -->
+      <svg class="icon-svg icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+
+    <div class="title" id="titleText">กำลังดาวน์โหลด...</div>
+    <div class="subtitle" id="subText">กำลังเชื่อมต่อกับเซิร์ฟเวอร์</div>
+
+    <div class="progress-header">
+      <span id="stageLabel">Downloading</span>
+      <span class="percent-value" id="percentText">0%</span>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="action-area">
+      <a href="https://discord.gg/a6bwQ8CgBE" target="_blank" rel="noopener noreferrer" class="dc-btn">
+        <!-- โลโก้ Discord -->
+        <svg class="dc-icon" viewBox="0 0 24 24">
+          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+        MY DC
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const progressFill = document.getElementById('progressFill');
+    const percentText = document.getElementById('percentText');
+    const titleText = document.getElementById('titleText');
+    const subText = document.getElementById('subText');
+    const stageLabel = document.getElementById('stageLabel');
+
+    // ระยะเวลาโหลดทั้งหมด (มิลลิวินาที) ปรับได้ตามต้องการ เช่น 3500 = 3.5 วินาที
+    const duration = 3800;
+    const startTime = performance.now();
+    let currentStage = '';
+
+    function updateSubtitle(text) {
+      if (currentStage === text) return;
+      currentStage = text;
+      subText.style.opacity = '0';
+      setTimeout(() => {
+        subText.textContent = text;
+        subText.style.opacity = '1';
+      }, 150);
+    }
+
+    // ฟังก์ชัน Easing ให้วิ่งสมูท 60fps แบบมีจังหวะชะลอช่วงท้ายนิดๆ
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function animate(now) {
+      const elapsed = now - startTime;
+      const rawProgress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeInOutCubic(rawProgress);
+      const percent = Math.floor(easedProgress * 100);
+
+      // อัปเดตความกว้างหลอดแบบทศนิยมละเอียดเพื่อความลื่นตา
+      progressFill.style.width = (easedProgress * 100).toFixed(2) + '%';
+      percentText.textContent = percent + '%';
+
+      if (percent < 30) {
+        updateSubtitle('กำลังเชื่อมต่อกับเซิร์ฟเวอร์...');
+      } else if (percent < 68) {
+        updateSubtitle('กำลังดาวน์โหลดข้อมูลไฟล์...');
+      } else if (percent < 95) {
+        updateSubtitle('กำลังตรวจสอบความสมบูรณ์...');
+      }
+
+      if (rawProgress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // โหลดครบ 100%
+        document.body.classList.add('completed');
+        titleText.textContent = 'ดาวน์โหลดเสร็จสิ้น';
+        stageLabel.textContent = 'Completed';
+        updateSubtitle('พร้อมใช้งานแล้ว กดปุ่มด้านล่างเพื่อเข้า Discord');
+      }
+    }
+
+    requestAnimationFrame(animate);
+  </script>
+
+</body>
+</html>
